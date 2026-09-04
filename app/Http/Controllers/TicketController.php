@@ -56,9 +56,20 @@ class TicketController extends Controller
     }
 
     public function show(Ticket $ticket)
-    {
-        $ticket->load(['department', 'category', 'requester', 'assignedTo']);
+{
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
 
-        return view('tickets.show', compact('ticket'));
-    }
+    $canView = $ticket->requester_id === $user->id
+        || $ticket->created_by_id === $user->id
+        || $user->hasPermissionTo('view_all_tickets')
+        || ($user->hasPermissionTo('view_department_tickets')
+            && $ticket->department_id === $user->department_id);
+
+    abort_unless($canView, 403);
+
+    $ticket->load(['department', 'category', 'requester', 'assignedTo']);
+
+    return view('tickets.show', compact('ticket'));
+}
 }

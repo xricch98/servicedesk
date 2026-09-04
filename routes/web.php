@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\QueueController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,6 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/tickets/create', [TicketController::class, 'create'])->name('tickets.create');
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
+    Route::get('/queue', [QueueController::class, 'index'])->name('queue.index');
 });
 
 require __DIR__.'/auth.php';
