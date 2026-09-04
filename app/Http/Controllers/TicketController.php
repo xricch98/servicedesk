@@ -1,0 +1,64 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Department;
+use App\Models\Ticket;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class TicketController extends Controller
+{
+    public function index()
+    {
+        $tickets = Ticket::where('requester_id', Auth::id())
+            ->with(['department', 'category', 'assignedTo'])
+            ->latest()
+            ->paginate(15);
+
+        return view('tickets.index', compact('tickets'));
+    }
+
+    public function create()
+    {
+        $departments = Department::where('is_active', true)
+            ->with('categories')
+            ->orderBy('name')
+            ->get();
+
+        return view('tickets.create', compact('departments'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'subject' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'department_id' => ['required', 'exists:departments,id'],
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'priority' => ['required', 'in:low,medium,high,critical'],
+            'location' => ['required', 'string', 'max:255'],
+        ]);
+
+        $department = Department::findOrFail($validated['department_id']);
+
+        $ticket = Ticket::create([
+            ...$validated,
+            'reference' => Ticket::generateReference($department),
+            'requester_id' => Auth::id(),
+            'created_by_id' => Auth::id(),
+            'status' => 'new',
+        ]);
+
+        return redirect()
+            ->route('tickets.show', $ticket)
+            ->with('success', "Ticket {$ticket->reference} created.");
+    }
+
+    public function show(Ticket $ticket)
+    {
+        $ticket->load(['department', 'category', 'requester', 'assignedTo']);
+
+        return view('tickets.show', compact('ticket'));
+    }
+}
