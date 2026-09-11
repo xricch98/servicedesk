@@ -62,6 +62,40 @@
                     <dd class="mt-2 text-sm text-gray-900 whitespace-pre-line">{{ $ticket->description }}</dd>
                 </div>
             </div>
+                        @if ($ticket->requester_id === auth()->id() && in_array($ticket->status, ['resolved', 'closed']))
+                <div class="mt-6 bg-white shadow-sm sm:rounded-lg p-6 border-l-4 border-green-500">
+                    @if ($ticket->status === 'resolved')
+                        <h3 class="text-sm font-semibold text-gray-900">This has been marked as fixed</h3>
+                        <p class="mt-1 text-sm text-gray-600">
+                            If the problem is sorted, please confirm. If not, tell us what's still wrong.
+                        </p>
+
+                        <form method="POST" action="{{ route('tickets.close', $ticket) }}" class="mt-4 inline">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit"
+                                    class="px-4 py-2 bg-green-600 text-white text-xs font-semibold uppercase rounded-md hover:bg-green-700">
+                                Confirm fixed
+                            </button>
+                        </form>
+                    @else
+                        <h3 class="text-sm font-semibold text-gray-900">This ticket is closed</h3>
+                        <p class="mt-1 text-sm text-gray-600">If the problem has come back, you can reopen it.</p>
+                    @endif
+
+                    <form method="POST" action="{{ route('tickets.reopen', $ticket) }}" class="mt-4">
+                        @csrf
+                        @method('PATCH')
+                        <textarea name="body" rows="2" required
+                                class="block w-full border-gray-300 rounded-md shadow-sm text-sm"
+                                placeholder="What's still wrong?"></textarea>
+                        <button type="submit"
+                                class="mt-2 px-4 py-2 border border-gray-300 text-xs font-semibold uppercase rounded-md hover:bg-gray-50">
+                            Reopen ticket
+                        </button>
+                    </form>
+                </div>
+            @endif
             @can('change_ticket_status')
                 <div class="mt-6 bg-white shadow-sm sm:rounded-lg p-6">
                     <h3 class="text-sm font-semibold text-gray-900 mb-4">Agent actions</h3>

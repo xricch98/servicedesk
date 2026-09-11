@@ -93,4 +93,55 @@ class TicketActionController extends Controller
 
     return back()->with('success', 'Reply added.');
 }
+    public function close(Ticket $ticket)
+{
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+
+    $canClose = $ticket->requester_id === $user->id
+        || ($user->hasPermissionTo('change_ticket_status')
+            && $this->sharesDepartment($user, $ticket));
+
+    abort_unless($canClose, 403);
+    abort_unless($ticket->status === 'resolved', 422);
+
+    $ticket->update([
+        'status' => 'closed',
+        'closed_at' => now(),
+    ]);
+
+    return back()->with('success', 'Ticket closed. Thank you.');
+}
+
+public function reopen(Request $request, Ticket $ticket)
+{
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+
+    $canReopen = $ticket->requester_id === $user->id
+        || ($user->hasPermissionTo('change_ticket_status')
+            && $this->sharesDepartment($user, $ticket));
+
+    abort_unless($canReopen, 403);
+    abort_unless(in_array($ticket->status, ['resolved', 'closed']), 422);
+
+    $validated = $request->validate([
+        'body' => ['required', 'string', 'max:5000'],
+    ]);
+
+    $ticket->comments()->create([
+        'user_id' => $user->id,
+        'body' => $validated['body'],
+        'is_internal' => false,
+    ]);
+
+    $ticket->update([
+        'status' => 'assigned',
+        'resolved_at' => null,
+        'closed_at' => null,
+        'reopen_count' => $ticket->reopen_count + 1,
+    ]);
+
+    return back()->with('success', 'Ticket reopened.');
+}
 }

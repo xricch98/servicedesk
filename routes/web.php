@@ -26,6 +26,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/tickets/{ticket}/assign', [TicketActionController::class, 'assign'])->name('tickets.assign');
     Route::patch('/tickets/{ticket}/status', [TicketActionController::class, 'status'])->name('tickets.status');
     Route::post('/tickets/{ticket}/comments', [TicketActionController::class, 'comment'])->name('tickets.comment');
+    Route::patch('/tickets/{ticket}/close', [TicketActionController::class, 'close'])->name('tickets.close');
+    Route::patch('/tickets/{ticket}/reopen', [TicketActionController::class, 'reopen'])->name('tickets.reopen');
 
 });
 
