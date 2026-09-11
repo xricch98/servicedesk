@@ -110,9 +110,60 @@
                             </div>
                         </form>
 
+
+
                     </div>
                 </div>
             @endcan
+            @php
+    $canSeeInternal = auth()->user()->hasPermissionTo('reply_to_ticket');
+    $visibleComments = $canSeeInternal
+        ? $ticket->comments
+        : $ticket->comments->where('is_internal', false);
+@endphp
+
+<div class="mt-6 bg-white shadow-sm sm:rounded-lg p-6">
+    <h3 class="text-sm font-semibold text-gray-900 mb-4">Conversation</h3>
+
+    @forelse ($visibleComments as $comment)
+        <div class="mb-4 pb-4 border-b border-gray-100 last:border-0">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-medium text-gray-900">{{ $comment->user->name }}</span>
+                <span class="text-xs text-gray-500">{{ $comment->created_at->format('d M Y, H:i') }}</span>
+                @if ($comment->is_internal)
+                    <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Internal note</span>
+                @endif
+            </div>
+            <p class="text-sm text-gray-700 whitespace-pre-line">{{ $comment->body }}</p>
+        </div>
+    @empty
+        <p class="text-sm text-gray-500 mb-4">No replies yet.</p>
+    @endforelse
+
+    <form method="POST" action="{{ route('tickets.comment', $ticket) }}" class="mt-4">
+        @csrf
+        <textarea name="body" rows="3" required
+                  class="block w-full border-gray-300 rounded-md shadow-sm text-sm"
+                  placeholder="Write a reply"></textarea>
+        <x-input-error :messages="$errors->get('body')" class="mt-2" />
+
+        <div class="mt-3 flex items-center justify-between">
+            @if ($canSeeInternal)
+                <label class="flex items-center gap-2 text-sm text-gray-600">
+                    <input type="checkbox" name="is_internal" value="1" class="rounded border-gray-300">
+                    Internal note — not visible to the requester
+                </label>
+            @else
+                <span></span>
+            @endif
+
+            <button type="submit"
+                    class="px-4 py-2 bg-gray-800 text-white text-xs font-semibold uppercase rounded-md hover:bg-gray-700">
+                Send
+            </button>
+        </div>
+    </form>
+</div>
 
         </div>
     </div>

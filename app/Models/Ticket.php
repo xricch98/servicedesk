@@ -90,4 +90,8 @@ class Ticket extends Model
 
     return $department->code . '-' . str_pad($number, 5, '0', STR_PAD_LEFT);
 }
+    public function comments()
+{
+    return $this->hasMany(TicketComment::class);
+}
 }

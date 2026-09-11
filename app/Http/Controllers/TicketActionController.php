@@ -62,4 +62,35 @@ class TicketActionController extends Controller
         return $user->hasPermissionTo('view_all_tickets')
             || $user->department_id === $ticket->department_id;
     }
+    public function comment(Request $request, Ticket $ticket)
+{
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+
+    $isAgent = $user->hasPermissionTo('reply_to_ticket')
+        && $this->sharesDepartment($user, $ticket);
+
+    $isRequester = $ticket->requester_id === $user->id;
+
+    abort_unless($isAgent || $isRequester, 403);
+
+    $validated = $request->validate([
+        'body' => ['required', 'string', 'max:5000'],
+        'is_internal' => ['nullable', 'boolean'],
+    ]);
+
+    $internal = $isAgent && $request->boolean('is_internal');
+
+    $ticket->comments()->create([
+        'user_id' => $user->id,
+        'body' => $validated['body'],
+        'is_internal' => $internal,
+    ]);
+
+    if ($isAgent && ! $internal && ! $ticket->first_response_at) {
+        $ticket->update(['first_response_at' => now()]);
+    }
+
+    return back()->with('success', 'Reply added.');
+}
 }

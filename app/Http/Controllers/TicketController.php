@@ -69,7 +69,7 @@ class TicketController extends Controller
 
     abort_unless($canView, 403);
 
-    $ticket->load(['department', 'category', 'requester', 'assignedTo']);
+    $ticket->load(['department', 'category', 'requester', 'assignedTo', 'comments.user']);
 
     $assignableUsers = $user->hasPermissionTo('assign_ticket')
     ? User::where('department_id', $ticket->department_id)

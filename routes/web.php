@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/queue', [QueueController::class, 'index'])->name('queue.index');
     Route::patch('/tickets/{ticket}/assign', [TicketActionController::class, 'assign'])->name('tickets.assign');
     Route::patch('/tickets/{ticket}/status', [TicketActionController::class, 'status'])->name('tickets.status');
+    Route::post('/tickets/{ticket}/comments', [TicketActionController::class, 'comment'])->name('tickets.comment');
 
 });
 
