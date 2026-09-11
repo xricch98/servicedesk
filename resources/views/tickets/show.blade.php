@@ -62,6 +62,57 @@
                     <dd class="mt-2 text-sm text-gray-900 whitespace-pre-line">{{ $ticket->description }}</dd>
                 </div>
             </div>
+            @can('change_ticket_status')
+                <div class="mt-6 bg-white shadow-sm sm:rounded-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4">Agent actions</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        @can('assign_ticket')
+                            <form method="POST" action="{{ route('tickets.assign', $ticket) }}">
+                                @csrf
+                                @method('PATCH')
+                                <label class="block text-sm text-gray-600 mb-1">Assign to</label>
+                                <div class="flex gap-2">
+                                    <select name="assigned_to_id" required
+                                            class="flex-1 border-gray-300 rounded-md shadow-sm text-sm">
+                                        <option value="">Select an agent</option>
+                                        @foreach ($assignableUsers as $candidate)
+                                            <option value="{{ $candidate->id }}"
+                                                @selected($ticket->assigned_to_id === $candidate->id)>
+                                                {{ $candidate->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <button type="submit"
+                                            class="px-4 py-2 bg-gray-800 text-white text-xs font-semibold uppercase rounded-md hover:bg-gray-700">
+                                        Assign
+                                    </button>
+                                </div>
+                            </form>
+                        @endcan
+
+                        <form method="POST" action="{{ route('tickets.status', $ticket) }}">
+                            @csrf
+                            @method('PATCH')
+                            <label class="block text-sm text-gray-600 mb-1">Change status</label>
+                            <div class="flex gap-2">
+                                <select name="status" required
+                                        class="flex-1 border-gray-300 rounded-md shadow-sm text-sm">
+                                    @foreach (['assigned' => 'Assigned', 'in_progress' => 'In progress', 'on_hold' => 'On hold', 'resolved' => 'Resolved'] as $value => $label)
+                                        <option value="{{ $value }}" @selected($ticket->status === $value)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit"
+                                        class="px-4 py-2 bg-gray-800 text-white text-xs font-semibold uppercase rounded-md hover:bg-gray-700">
+                                    Update
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            @endcan
 
         </div>
     </div>

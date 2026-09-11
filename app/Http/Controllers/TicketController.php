@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class TicketController extends Controller
 {
@@ -69,6 +70,15 @@ class TicketController extends Controller
     abort_unless($canView, 403);
 
     $ticket->load(['department', 'category', 'requester', 'assignedTo']);
+
+    $assignableUsers = $user->hasPermissionTo('assign_ticket')
+    ? User::where('department_id', $ticket->department_id)
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get()
+    : collect();
+
+    return view('tickets.show', compact('ticket', 'assignableUsers'));
 
     return view('tickets.show', compact('ticket'));
 }

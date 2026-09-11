@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\QueueController;
+use App\Http\Controllers\TicketActionController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,6 +23,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
     Route::get('/queue', [QueueController::class, 'index'])->name('queue.index');
+    Route::patch('/tickets/{ticket}/assign', [TicketActionController::class, 'assign'])->name('tickets.assign');
+    Route::patch('/tickets/{ticket}/status', [TicketActionController::class, 'status'])->name('tickets.status');
+
 });
 
 require __DIR__.'/auth.php';
